@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "Dad Jokes",
+    "version": "1.0.0",
+    "slug": "dad-jokes",
+    "sdkVersion": "23.0.0",
+    "ios": {
+      "bundleIdentifier": "indap.neel.dadjokes"
+    },
+    "android": {
+      "package": "indap.neel.dadjokes"
+    }
+  }
+}
