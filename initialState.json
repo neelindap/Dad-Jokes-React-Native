@@ -1,0 +1,12 @@
+{
+    "jokes": {
+        "cards": null,
+        "page": 1,
+        "fetching": false,
+        "fetched": false,
+        "error": null
+    },
+    "favorites": {
+        "cards": null
+    }
+}

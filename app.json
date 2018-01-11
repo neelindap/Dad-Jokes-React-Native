@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "Dad Jokes",
+    "icon": "./assets/icon.png",
     "version": "1.0.0",
     "slug": "dad-jokes",
     "sdkVersion": "23.0.0",
@@ -9,6 +10,10 @@
     },
     "android": {
       "package": "indap.neel.dadjokes"
+    },
+    "splash": {
+      "image": "./assets/splash.png",
+      "backgroundColor": "#fffacd"
     }
   }
 }

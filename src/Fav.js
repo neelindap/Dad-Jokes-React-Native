@@ -1,46 +1,25 @@
-import React from 'react';
-import Swiper from 'react-native-deck-swiper';
-import { AsyncStorage, ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import React from 'react'
+import Swiper from 'react-native-deck-swiper'
+import { AsyncStorage, StyleSheet, Text, View } from 'react-native'
+import { connect } from 'react-redux'
 
-export default class Fav extends React.Component {
+import { getFavJokes } from './actions'
+
+class Fav extends React.Component {
 
     constructor(props) {
         super(props)
-        this.state = {
-            cards: null
-        }
     }
 
     componentWillMount() {
-        // console.log('mounted')
-        this.loadFav()
-    }
-
-    forceUpdateHandler() {
-        // console.log('forceupdate - fav')
-        this.forceUpdate();
-    };
-
-    async loadFav() {
-        try {
-            var local_jokes = await AsyncStorage.getItem('Jokes')
-            if (local_jokes !== null) {
-                local_jokes = JSON.parse(local_jokes)
-                this.setState({
-                    cards: local_jokes
-                })
-            }
-        } catch (error) {
-            // Error retrieving data
-            console.log('err ' + error)
-        }
+        this.props.dispatch(getFavJokes())
     }
 
     render() {
-        if (this.state.cards == null) {
+        if (this.props.cards == null) {
             return (
                 <View style={styles.container}>
-                    <Text fontSize={24}>Looks like you haven't liked any jokes yet</Text>
+                    <Text fontSize={36}>Looks like you didn't like any of jokes.</Text>
                 </View>
             );
         }
@@ -48,7 +27,7 @@ export default class Fav extends React.Component {
             return (
                 <View style={styles.container}>
                     <Swiper
-                        cards={this.state.cards}
+                        cards={this.props.cards}
                         renderCard={(card) => {
                             return (
                                 <View style={styles.card} key={card.id}>
@@ -66,7 +45,6 @@ export default class Fav extends React.Component {
             )
         }
     }
-}
 }
 
 const styles = StyleSheet.create({
@@ -90,3 +68,11 @@ const styles = StyleSheet.create({
         backgroundColor: 'transparent'
     }
 });
+
+function mapStateToProps(state) {
+    const { favorites } = state
+  
+    return favorites
+  }
+  
+  export default connect(mapStateToProps)(Fav)

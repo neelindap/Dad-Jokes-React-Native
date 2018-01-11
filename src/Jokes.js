@@ -1,85 +1,60 @@
 import React from 'react';
 import Swiper from 'react-native-deck-swiper';
 import { AsyncStorage, ActivityIndicator, StyleSheet, Text, ToastAndroid, View } from 'react-native';
+import { connect } from 'react-redux'
 
-export default class Jokes extends React.Component {
+import { getJokesFromApi, incrementPage, getFavJokes, setFavJoke  } from './actions'
+
+class Jokes extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      cards: null,
       swipedAllCards: false,
       swipeDirection: '',
       isSwipingBack: false,
-      cardIndex: 0,
-      page: 1
+      cardIndex: 0
     }
   }
 
   componentWillMount() {
-    console.log(this.state.card)
-    if (this.state.cards == null) {
-      this.getJokesFromApi()
-        .then((data) => {
-          this.setState({
-            cards: data.results
-          })
-        });
-    }
-  }
-
-  async getJokesFromApi() {
-    var page = this.state.page
-    var headers = {
-      Accept: 'application/json'
-    }
-    var url = `https://icanhazdadjoke.com/search?page=${page}`
-
-    const res = await fetch(url, {
-      method: "GET",
-      headers: headers
-    });
-
-    return await res.json();
+    this.props.dispatch(getJokesFromApi(this.props.jokes.page))
   }
 
   // Fetch more jokes
-  async swipedAll() {
-    var page = this.state.page
-    this.setState({
-      page: page + 1,
-      cards: null
-    });
-    this.getJokesFromApi()
-      .then((data) => {
-        this.setState({
-          cards: data.results
-        })
-      })
+  swipedAll() {
+    this.setState({cardIndex: 0})
+    this.props.dispatch(incrementPage(this.props.page))
   }
 
   // Add to favorites
   async swipedRight(cardIndex) {
+    this.setState({cardIndex})
     try {
-      const joke_liked = this.state.cards[cardIndex]
-      var local_jokes = await AsyncStorage.getItem('Jokes')
-      if (local_jokes === null) {
-        local_jokes = new Array()
+      const joke_liked = this.props.jokes.cards[cardIndex]
+      var fav_jokes = this.props.favorites
+
+      if (fav_jokes.cards === null) {
+        fav_jokes = new Array()
       } else {
-        local_jokes = JSON.parse(local_jokes)
-        exists = this.checkjoke(local_jokes, joke_liked.id)
+        fav_jokes = fav_jokes.cards
+        exists = this.checkjoke(fav_jokes, joke_liked.id)
         if (exists) {
           ToastAndroid.show('Joke already present in favorites', ToastAndroid.SHORT);
           return
         }
       }
-      local_jokes.push(joke_liked)
+      fav_jokes.push(joke_liked)
+      this.props.dispatch(setFavJoke(fav_jokes))
 
-      await AsyncStorage.setItem('Jokes', JSON.stringify(local_jokes));
-
+      await AsyncStorage.setItem('joke-store', JSON.stringify(this.props))
+      ToastAndroid.show('Joke (d)added to your favorites', ToastAndroid.SHORT);
     } catch (error) {
-      // Error retrieving data
       console.log('err ' + error)
     }
+  }
+
+  swipedLeft(cardIndex){
+    this.setState({cardIndex})
   }
 
   checkjoke(local_joke, jokeid) {
@@ -93,10 +68,10 @@ export default class Jokes extends React.Component {
   }
 
   render() {
-    if (this.state.cards == null) {
+    if (this.props.jokes.fetched == false) {
       return (
         <View style={styles.container}>
-          <Text fontSize={24}>Hold your horses, while things get stable</Text><ActivityIndicator size="large" color="#00ff00" />
+          <Text fontSize={36}>Hold your horses, while things get stable</Text><ActivityIndicator size="large" color="#00ff00" />
         </View>
       );
     }
@@ -104,7 +79,7 @@ export default class Jokes extends React.Component {
       return (
         <View style={styles.container}>
           <Swiper
-            cards={this.state.cards}
+            cards={this.props.jokes.cards}
             renderCard={(card) => {
               return (
                 <View style={styles.card} key={card.id}>
@@ -113,6 +88,7 @@ export default class Jokes extends React.Component {
               )
             }}
             onSwipedRight={(cardIndex) => { this.swipedRight(cardIndex) }}
+            onSwipedLeft={(cardIndex) => { this.swipedLeft(cardIndex) }}
             onSwipedAll={this.swipedAll.bind(this)}
             cardIndex={0}
             backgroundColor={'#FFF'}
@@ -184,3 +160,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent'
   }
 });
+
+function mapStateToProps(state) {
+  const { jokes, favorites } = state
+
+  return {
+    jokes,
+    favorites
+  }
+}
+
+export default connect(mapStateToProps)(Jokes)
